@@ -1,62 +1,294 @@
 <!DOCTYPE html>
-<html>
+<html lang="fr">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Formulaire de déclaration de points de vue remarquables - Atlas du Loiret</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Marianne:wght@400;700&display=swap">
     <style>
-        body { font-family: Arial, sans-serif; margin: 20px; }
-        h1 { text-align: center; margin-bottom: 20px; }
-        .form-section { margin-bottom: 20px; }
-        .form-section h2 { margin-bottom: 10px; }
-        .input-container, .button-container, .validated-points { margin-bottom: 20px; }
-        .input-container label { margin-right: 10px; }
-        .input-container input { margin-right: 10px; }
-        .button-container button { margin-right: 10px; }
-        .validated-points h3 { margin-bottom: 10px; }
-        .error { color: red; margin-top: 10px; }
-        .separator { border-top: 2px solid #ccc; margin: 20px 0; }
-        #map { height: 400px; width: 100%; margin-bottom: 20px; }
+        /* Style État Français */
+        :root {
+            --bleu-marianne: #000091;
+            --bleu-marianne-light: #e5e5ff;
+            --gris-text: #1e1e1e;
+            --gris-light: #f5f5f5;
+            --rouge-error: #d80000;
+        }
+
+        body {
+            font-family: "Marianne", Arial, sans-serif;
+            line-height: 1.6;
+            color: var(--gris-text);
+            margin: 0;
+            padding: 0;
+            background-color: var(--gris-light);
+        }
+
+        .header {
+            background-color: var(--bleu-marianne);
+            color: white;
+            padding: 15px 20px;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 1.5rem;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .form-section {
+            background-color: white;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .form-section h2 {
+            color: var(--bleu-marianne);
+            border-bottom: 2px solid var(--bleu-marianne);
+            padding-bottom: 10px;
+            margin-top: 0;
+        }
+
+        .input-container {
+            margin-bottom: 15px;
+        }
+
+        .input-container label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        .input-container input:disabled, .input-container textarea:disabled {
+            background-color: #f5f5f5;
+            cursor: not-allowed;
+        }
+
+        .input-container input, .input-container textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+            margin-bottom: 10px;
+        }
+
+        .input-container textarea {
+            height: 100px;
+            resize: vertical;
+        }
+
+        .button-container {
+            margin: 20px 0;
+        }
+
+        button {
+            background-color: var(--bleu-marianne);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+
+        button:hover:not(:disabled) {
+            background-color: #00007a;
+        }
+
+        .error {
+            color: var(--rouge-error);
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #ffebee;
+            border-radius: 4px;
+            display: none;
+        }
+
+        .separator {
+            border-top: 2px solid var(--bleu-marianne-light);
+            margin: 20px 0;
+        }
+
+        #map {
+            height: 400px;
+            width: 100%;
+            margin-bottom: 20px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+        }
+
+        .validated-points {
+            background-color: white;
+            padding: 20px;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .validated-points h3 {
+            color: var(--bleu-marianne);
+            margin-top: 0;
+        }
+
+        .validated-points ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        .validated-points li {
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .validated-points button {
+            background-color: var(--rouge-error);
+            padding: 5px 10px;
+            font-size: 0.9rem;
+        }
+
+        .validated-points button:hover {
+            background-color: #b70000;
+        }
+
+        .coordinates-box {
+            background-color: var(--bleu-marianne-light);
+            padding: 15px;
+            border-radius: 4px;
+            border-left: 4px solid var(--bleu-marianne);
+            margin-bottom: 15px;
+        }
+
+        .coordinates-container {
+            display: flex;
+            gap: 15px;
+        }
+
+        .coordinates-container > div {
+            flex: 1;
+        }
+
+        .coordinates-container label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        .coordinates-container input {
+            width: 100%;
+            padding: 6px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 0.9rem;
+            background-color: var(--bleu-marianne-light);
+        }
+
+        .required:after {
+            content: " *";
+            color: var(--rouge-error);
+        }
     </style>
 </head>
 <body>
-    <h1>Formulaire de points remarquables</h1>
-    <div class="form-section">
-        <h2>Informations personnelles</h2>
-        <div class="input-container">
-            <label for="firstName">Prénom :</label>
-            <input type="text" id="firstName" placeholder="Entrez votre prénom">
-            <label for="lastName">Nom :</label>
-            <input type="text" id="lastName" placeholder="Entrez votre nom">
-            <label for="email">Courriel :</label>
-            <input type="email" id="email" placeholder="Entrez votre courriel">
-        </div>
+    <div class="header">
+        <h1>Formulaire de déclaration de points de vue remarquables - Atlas du Loiret</h1>
     </div>
-    <div class="separator"></div>
-    <div class="form-section">
-        <h2>Informations du point</h2>
-        <div class="input-container">
-            <label for="pointName">Nom du point :</label>
-            <input type="text" id="pointName" placeholder="Entrez le nom du point" disabled>
-            <label for="latitude">Latitude :</label>
-            <input type="text" id="latitude" readonly disabled>
-            <label for="longitude">Longitude :</label>
-            <input type="text" id="longitude" readonly disabled>
+
+    <div class="container">
+        <div class="form-section">
+            <h2>Informations personnelles</h2>
+            <div class="input-container">
+                <label for="firstName" class="required">Prénom :</label>
+                <input type="text" id="firstName" placeholder="Entrez votre prénom" required>
+
+                <label for="lastName" class="required">Nom :</label>
+                <input type="text" id="lastName" placeholder="Entrez votre nom" required>
+
+                <label for="email" class="required">Courriel :</label>
+                <input type="email" id="email" placeholder="Entrez votre courriel" required>
+
+                <label for="etablissement">Établissement :</label>
+                <input type="text" id="etablissement" placeholder="Entrez votre établissement">
+            </div>
+        </div>
+
+        <div class="separator"></div>
+
+        <div class="form-section">
+            <h2>Informations du point</h2>
+            <div class="input-container">
+                <label for="pointName" class="required">Nom du point :</label>
+                <input type="text" id="pointName" placeholder="Entrez le nom du point" disabled required>
+            </div>
+
+            <div class="coordinates-box">
+                <div class="coordinates-container">
+                    <div>
+                        <label for="latitude">Latitude :</label>
+                        <input type="text" id="latitude" readonly disabled>
+                    </div>
+                    <div>
+                        <label for="longitude">Longitude :</label>
+                        <input type="text" id="longitude" readonly disabled>
+                    </div>
+                </div>
+            </div>
+
+            <div class="input-container">
+                <label for="commentaire">Commentaire :</label>
+                <textarea id="commentaire" placeholder="Ajoutez un commentaire sur ce point" disabled></textarea>
+            </div>
+
             <div id="error-message" class="error" style="display: none;"></div>
+
+            <div class="button-container">
+                <button id="deleteButton" disabled>Supprimer le point</button>
+                <button id="validateButton" disabled>Valider le point</button>
+            </div>
         </div>
+
+        <div id="map"></div>
+
+        <div class="validated-points">
+            <h3>Points validés :</h3>
+            <ul id="validatedPointsList"></ul>
+        </div>
+
         <div class="button-container">
-            <button id="deleteButton" disabled>Supprimer le point</button>
-            <button id="validateButton" disabled>Valider le point</button>
+            <button id="sendButton" disabled>Envoyer les informations</button>
         </div>
     </div>
-    <div id="map"></div>
-    <div class="validated-points">
-        <h3>Points validés :</h3>
-        <ul id="validatedPointsList"></ul>
-    </div>
-    <div class="button-container">
-        <button id="sendButton" disabled>Envoyer les informations</button>
-    </div>
+
     <script>
+        // Fonction pour échapper le HTML et prévenir les attaques XSS
+        function escapeHtml(unsafe) {
+            if (!unsafe) return '';
+            return unsafe
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
         // Coordonnées des limites du département du Loiret
         var southWest = L.latLng(47.4, 1.0);
         var northEast = L.latLng(48.3, 2.9);
@@ -70,44 +302,55 @@
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         }).addTo(map);
 
-        var marker;
+        var marker = null;
         var deleteButton = document.getElementById('deleteButton');
         var validateButton = document.getElementById('validateButton');
         var sendButton = document.getElementById('sendButton');
         var validatedPointsList = document.getElementById('validatedPointsList');
         var validatedPoints = [];
         var errorMessage = document.getElementById('error-message');
+        var commentaireInput = document.getElementById('commentaire');
+        var pointNameInput = document.getElementById('pointName');
+        var latitudeInput = document.getElementById('latitude');
+        var longitudeInput = document.getElementById('longitude');
+
+        // Variable pour suivre si un clic a été fait sur la carte
+        var mapClicked = false;
 
         // Écouter les changements dans le champ "Courriel"
         document.getElementById('email').addEventListener('input', function() {
             var email = this.value;
-            var pointNameInput = document.getElementById('pointName');
-            var latitudeInput = document.getElementById('latitude');
-            var longitudeInput = document.getElementById('longitude');
-            var mapElement = document.getElementById('map');
             if (email) {
                 pointNameInput.disabled = false;
                 latitudeInput.disabled = false;
                 longitudeInput.disabled = false;
-                mapElement.style.pointerEvents = 'auto';
+                commentaireInput.disabled = false;
+                document.getElementById('map').style.pointerEvents = 'auto';
             } else {
                 pointNameInput.disabled = true;
                 latitudeInput.disabled = true;
                 longitudeInput.disabled = true;
-                mapElement.style.pointerEvents = 'none';
+                commentaireInput.disabled = true;
+                document.getElementById('map').style.pointerEvents = 'none';
+                validateButton.disabled = true;
+                mapClicked = false;
             }
         });
 
         // Écouter les changements dans le champ "Nom du point"
-        document.getElementById('pointName').addEventListener('input', function() {
-            validateButton.disabled = !this.value;
+        pointNameInput.addEventListener('input', function() {
+            // Le bouton valider ne sera actif que si le nom est renseigné ET qu'il y a eu un clic sur la carte
+            validateButton.disabled = !(this.value && mapClicked);
         });
 
         // Écouter les clics sur la carte
         map.on('click', function(e) {
+            mapClicked = true;
+
             if (marker) {
                 map.removeLayer(marker);
             }
+
             var lat = e.latlng.lat;
             var lng = e.latlng.lng;
 
@@ -115,19 +358,20 @@
             marker = L.marker(e.latlng, { draggable: true }).addTo(map);
 
             // Afficher les coordonnées dans les champs de texte
-            document.getElementById('latitude').value = lat;
-            document.getElementById('longitude').value = lng;
-            console.log("Latitude: " + lat + " Longitude: " + lng);
+            latitudeInput.value = lat;
+            longitudeInput.value = lng;
 
             // Activer le bouton de suppression
             deleteButton.disabled = false;
 
+            // Mettre à jour l'état du bouton valider
+            validateButton.disabled = !pointNameInput.value;
+
             // Mettre à jour les coordonnées lors du déplacement du marqueur
             marker.on('dragend', function(event) {
                 var newLatLng = event.target.getLatLng();
-                document.getElementById('latitude').value = newLatLng.lat;
-                document.getElementById('longitude').value = newLatLng.lng;
-                console.log("Nouvelle Latitude: " + newLatLng.lat + " Nouvelle Longitude: " + newLatLng.lng);
+                latitudeInput.value = newLatLng.lat;
+                longitudeInput.value = newLatLng.lng;
             });
         });
 
@@ -136,21 +380,24 @@
             if (marker) {
                 map.removeLayer(marker);
                 marker = null;
-                document.getElementById('latitude').value = '';
-                document.getElementById('longitude').value = '';
-                document.getElementById('pointName').value = '';
-                // Réinitialiser le nom du point
+                latitudeInput.value = '';
+                longitudeInput.value = '';
+                pointNameInput.value = '';
+                commentaireInput.value = '';
                 deleteButton.disabled = true;
                 validateButton.disabled = true;
+                mapClicked = false;
             }
         });
 
         // Valider le point
         validateButton.addEventListener('click', function() {
-            if (marker) {
-                var pointName = document.getElementById('pointName').value;
-                var lat = document.getElementById('latitude').value;
-                var lng = document.getElementById('longitude').value;
+            if (marker && mapClicked) {
+                var pointName = escapeHtml(pointNameInput.value);
+                var lat = latitudeInput.value;
+                var lng = longitudeInput.value;
+                var commentaire = escapeHtml(commentaireInput.value);
+
                 if (!pointName) {
                     errorMessage.textContent = "Le nom du point est obligatoire.";
                     errorMessage.style.display = 'block';
@@ -164,11 +411,16 @@
                 errorMessage.style.display = 'none';
 
                 // Ajouter le point à la liste des points validés
-                validatedPoints.push({ name: pointName, lat: lat, lng: lng });
+                validatedPoints.push({
+                    name: pointName,
+                    lat: lat,
+                    lng: lng,
+                    commentaire: commentaire
+                });
 
                 // Créer un élément de liste pour le point validé
                 var listItem = document.createElement('li');
-                listItem.textContent = `${pointName} (Lat: ${lat}, Lng: ${lng}) `;
+                listItem.textContent = `${escapeHtml(pointName)} (Lat: ${escapeHtml(lat)}, Lng: ${escapeHtml(lng)}) ${commentaire ? '- ' + escapeHtml(commentaire) : ''}`;
                 var deletePointButton = document.createElement('button');
                 deletePointButton.textContent = 'Supprimer';
                 deletePointButton.addEventListener('click', function() {
@@ -186,7 +438,7 @@
                 validatedPointsList.appendChild(listItem);
 
                 // Ajouter un popup au marqueur avec le nom du point
-                marker.bindPopup(pointName).openPopup();
+                marker.bindPopup(`<b>${escapeHtml(pointName)}</b><br>Latitude: ${escapeHtml(lat)}<br>Longitude: ${escapeHtml(lng)}${commentaire ? '<br><br>Commentaire: ' + escapeHtml(commentaire) : ''}`).openPopup();
 
                 // Empêcher le marqueur d'être draggable
                 marker.dragging.disable();
@@ -202,30 +454,47 @@
                 }));
 
                 // Réinitialiser les champs de texte
-                document.getElementById('pointName').value = '';
-                document.getElementById('latitude').value = '';
-                document.getElementById('longitude').value = '';
+                pointNameInput.value = '';
+                latitudeInput.value = '';
+                longitudeInput.value = '';
+                commentaireInput.value = '';
 
                 // Désactiver le bouton de validation
                 validateButton.disabled = true;
+                mapClicked = false;
 
                 // Réinitialiser le marqueur temporaire
                 marker = null;
                 deleteButton.disabled = true;
 
-                // Activer le bouton d'envoi si tous les points sont validés
+                // Activer le bouton d'envoi si des points sont validés
                 sendButton.disabled = validatedPoints.length === 0;
             }
         });
 
         // Envoyer les informations au serveur via fetch
         sendButton.addEventListener('click', async () => {
-            const firstName = document.getElementById('firstName').value;
-            const lastName = document.getElementById('lastName').value;
-            const email = document.getElementById('email').value;
+            const firstName = escapeHtml(document.getElementById('firstName').value);
+            const lastName = escapeHtml(document.getElementById('lastName').value);
+            const email = escapeHtml(document.getElementById('email').value);
+            const etablissement = escapeHtml(document.getElementById('etablissement').value);
 
-            // URL du serveur (à adapter selon votre configuration)
-            const serverUrl = "server"; // Remplacez par l'URL de votre serveur
+            // Vérification des champs obligatoires
+            if (!firstName || !lastName || !email) {
+                errorMessage.textContent = "Les champs Prénom, Nom et Courriel sont obligatoires.";
+                errorMessage.style.display = 'block';
+                return;
+            }
+
+            // Validation de l'email
+            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                errorMessage.textContent = "Veuillez entrer un courriel valide.";
+                errorMessage.style.display = 'block';
+                return;
+            }
+
+            // URL du serveur
+            const serverUrl = "http://localhost:3000/api/points"; // Appel vers le proxy
 
             try {
                 // Envoyer chaque point un par un
@@ -236,12 +505,18 @@
                             "Content-Type": "application/json",
                         },
                         body: JSON.stringify({
-                            Nom: lastName,
-                            Prenom: firstName,
-                            Mail: email,
-                            Point: point.name,
-                            Lat: point.lat,
-                            Long: point.lng,
+                            records: [{
+                                fields: {
+                                    Nom: lastName,
+                                    Prenom: firstName,
+                                    Mail: email,
+                                    Etablissement: etablissement,
+                                    Point: point.name,
+                                    Lat: parseFloat(point.lat).toFixed(6),
+                                    Long: parseFloat(point.lng).toFixed(6),
+                                    Commentaire: point.commentaire
+                                }
+                            }]
                         }),
                     });
 
@@ -263,6 +538,7 @@
                 document.getElementById('firstName').value = '';
                 document.getElementById('lastName').value = '';
                 document.getElementById('email').value = '';
+                document.getElementById('etablissement').value = '';
 
                 // Réinitialiser la carte
                 map.eachLayer(function(layer) {
@@ -274,6 +550,7 @@
                 deleteButton.disabled = true;
                 validateButton.disabled = true;
                 sendButton.disabled = true;
+                mapClicked = false;
 
             } catch (error) {
                 console.error("Erreur lors de l'envoi des données:", error);
