@@ -351,8 +351,8 @@
                 map.removeLayer(marker);
             }
 
-            var lat = e.latlng.lat;
-            var lng = e.latlng.lng;
+            var lat = e.latlng.lat.toFixed(6);
+            var lng = e.latlng.lng.toFixed(6);
 
             // Ajouter un marqueur à la carte
             marker = L.marker(e.latlng, { draggable: true }).addTo(map);
